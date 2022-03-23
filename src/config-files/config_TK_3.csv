@@ -1,0 +1,17 @@
+[gene-expression],,
+ref,/exports/eddie/scratch/nbestard/TK/data/genomeref/refdata-gex-GRCh38-2020-A,
+expect-cells,5000,
+,,
+[libraries],,
+fastq_id,fastqs,feature_types
+Run2_3_GEX,/exports/eddie/scratch/nbestard/TK/data/raw_data/2022-03-21/TK_140322/outs/fastq_path/AAAL35KHV,Gene Expression
+Run2_3_MP,/exports/eddie/scratch/nbestard/TK/data/raw_data/2022-03-21/TK_140322/outs/fastq_path/AAAL35KHV,Multiplexing Capture
+3_GEX,/exports/eddie/scratch/nbestard/TK/data/raw_data/2022-02-03/TK_190122_Reanalysis/outs/fastq_path/AAAK3JYHV,Gene Expression
+3_MP,/exports/eddie/scratch/nbestard/TK/data/raw_data/2022-02-03/TK_190122_Reanalysis/outs/fastq_path/AAAK3JYHV,Multiplexing Capture
+,,
+[samples],,
+sample_id,cmo_ids,description
+TK_3A,CMO305,RC17Day16-CHIRBoostProtocol-Biologicalreplicate1(ND47)
+TK_3B,CMO306,RC17Day16-CHIRBoostProtocol-Biologicalreplicate2(ND49)
+TK_3C,CMO307,MShef7Day16-CHIRBoostProtocol-Biologicalreplicate1(ND50)
+TK_3D,CMO308,MShef7Day16-CHIRBoostProtocol-Biologicalreplicate2(ND59)
