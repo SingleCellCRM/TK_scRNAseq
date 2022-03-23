@@ -10,7 +10,7 @@
 # cellranger multi
 
 # variables
-SAMPLE=$1
+SAMPLE=$1 # from the submit script TK_$i
 
 # run cellranger
-cellrnager multi --id=TK_$SAMPLE --csv=config-files/config_TK_$SAMPLE
+cellrnager multi --id=$SAMPLE --csv=config-files/config_$SAMPLE
