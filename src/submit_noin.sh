@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-cd /exports/eddie/scratch/$USER/TK/
+cd /exports/eddie/scratch/nbestard/TK/
 # we do not need read in samples file, as they are just TK_i
 #while read -r SAMPLE || [ -n "$SAMPLE" ]
 for i in {1..8}

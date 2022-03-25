@@ -3,9 +3,9 @@
 # https://support.10xgenomics.com/single-cell-gene-expression/software/overview/system-requirements
 # 128 total mem.
 #$ -cwd
-#$ -l h_rt=00:01:00
-#$ -l h_vmem=4G
-##$ -pe sharedmem 16
+#$ -l h_rt=20:00:00
+#$ -l h_vmem=8G
+#$ -pe sharedmem 16
 
 
 # Initialise the environment modules
