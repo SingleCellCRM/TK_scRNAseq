@@ -1,15 +1,15 @@
-[gene-expression],,
-ref,/exports/eddie/scratch/nbestard/TK/data/genomeref/refdata-gex-GRCh38-2020-A,
-expect-cells,5000,
-,,
-[libraries],,
+[gene-expression]
+ref,/exports/eddie/scratch/nbestard/TK/data/genomeref/refdata-gex-GRCh38-2020-A
+expect-cells,25000
+
+[libraries]
 fastq_id,fastqs,feature_types
 Run2_7_GEX,/exports/eddie/scratch/nbestard/TK/data/raw_data/2022-03-21/TK_140322/outs/fastq_path/AAAL35KHV,Gene Expression
 Run2_7_MP,/exports/eddie/scratch/nbestard/TK/data/raw_data/2022-03-21/TK_140322/outs/fastq_path/AAAL35KHV,Multiplexing Capture
 7_GEX,/exports/eddie/scratch/nbestard/TK/data/raw_data/2022-02-03/TK_190122_Reanalysis/outs/fastq_path/AAAK3JYHV,Gene Expression
 7_MP,/exports/eddie/scratch/nbestard/TK/data/raw_data/2022-02-03/TK_190122_Reanalysis/outs/fastq_path/AAAK3JYHV,Multiplexing Capture
-,,
-[samples],,
+
+[samples]
 sample_id,cmo_ids,description
 TK_7A,CMO309,CiRAiPSC#1(1231A3)-Day16-UKProtocol-Biologicalreplicate1(35)
 TK_7B,CMO310,CiRAiPSC#1(1231A3)-Day16-UKProtocol-Biologicalreplicate2(39)
