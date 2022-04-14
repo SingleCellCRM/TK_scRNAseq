@@ -6,7 +6,7 @@
 #$ -l h_rt=20:00:00
 #$ -l h_vmem=8G
 #$ -pe sharedmem 16
-
+#$ -t 1-8
 
 # Initialise the environment modules
 . /etc/profile.d/modules.sh
@@ -14,11 +14,20 @@
 module load igmm/apps/cellranger/6.0.2
 # check if this is the Cellranger version you would like to use. 
 
+#ID file With these names no need to use idfile
+#IDFILE=/exports/eddie/scratch/$USER/TK/src/samples.txt
+# Assigning SAMPLE variable from the built-in array counter
+#SAMPLE=`sed -n ${SGE_TASK_ID}p "$IDFILE"`
 
+# change to a temporal directory, so intermediate files do not take space here
+cd $TMPDIR
 # cellranger multi
 
 # variables
-SAMPLE=$1 # from the submit script TK_$i
+SAMPLE="TK_${SGE_TASK_ID}"
 csv=/exports/eddie/scratch/$USER/TK/src/config-files/config_${SAMPLE}.csv
 # run cellranger
 cellranger multi --id=$SAMPLE --csv=$csv
+
+mkdir -p /exports/eddie/scratch/$USER/TK/outs/CellRanger/
+rsync -rl $SAMPLE /exports/eddie/scratch/$USER/TK/outs/CellRanger/
