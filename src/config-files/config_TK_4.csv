@@ -1,6 +1,5 @@
 [gene-expression]
 ref,/exports/eddie/scratch/nbestard/TK/data/genomeref/refdata-gex-GRCh38-2020-A,
-expect-cells,25000
 
 [libraries]
 fastq_id,fastqs,feature_types

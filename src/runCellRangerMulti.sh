@@ -11,7 +11,7 @@
 # Initialise the environment modules
 . /etc/profile.d/modules.sh
 
-module load igmm/apps/cellranger/6.0.2
+module load igmm/apps/cellranger/7.0.0
 # check if this is the Cellranger version you would like to use. 
 
 #ID file With these names no need to use idfile
