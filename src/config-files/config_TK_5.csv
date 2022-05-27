@@ -4,6 +4,10 @@ expect-cells,25000
 
 [libraries]
 fastq_id,fastqs,feature_types
+Run4_5_GEX,/exports/eddie/scratch/nbestard/TK/data/raw_data/2022-05-20/TK_190522/outs/fastq_path/AAAMGTYHV,Gene Expression
+Run4_5_MP,/exports/eddie/scratch/nbestard/TK/data/raw_data/2022-05-20/TK_190522/outs/fastq_path/AAAMGTYHV,Multiplexing Capture
+Run3_5_GEX,/exports/eddie/scratch/nbestard/TK/data/raw_data/2022-05-03/TK_280422/outs/fastq_path/AAAM5MVHV,Gene Expression
+Run3_5_MP,/exports/eddie/scratch/nbestard/TK/data/raw_data/2022-05-03/TK_280422/outs/fastq_path/AAAM5MVHV,Multiplexing Capture
 Run2_5_GEX,/exports/eddie/scratch/nbestard/TK/data/raw_data/2022-03-21/TK_140322/outs/fastq_path/AAAL35KHV,Gene Expression
 Run2_5_MP,/exports/eddie/scratch/nbestard/TK/data/raw_data/2022-03-21/TK_140322/outs/fastq_path/AAAL35KHV,Multiplexing Capture
 5_GEX,/exports/eddie/scratch/nbestard/TK/data/raw_data/2022-02-03/TK_190122_Reanalysis/outs/fastq_path/AAAK3JYHV,Gene Expression
