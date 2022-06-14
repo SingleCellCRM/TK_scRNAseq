@@ -3,6 +3,7 @@ ref,/exports/eddie/scratch/nbestard/TK/data/genomeref/refdata-gex-GRCh38-2020-A
 
 [libraries]
 fastq_id,fastqs,feature_types
+Run5_1_GEX,/exports/eddie/scratch/nbestard/TK/data/raw_data/2022-06-04_01/TK_020622-01/outs/fastq_path/AAAMMGNHV/,Gene Expression
 Run4_1_GEX,/exports/eddie/scratch/nbestard/TK/data/raw_data/2022-05-20/TK_190522/outs/fastq_path/AAAMGTYHV,Gene Expression
 Run3_1_GEX,/exports/eddie/scratch/nbestard/TK/data/raw_data/2022-05-03/TK_280422/outs/fastq_path/AAAM5MVHV,Gene Expression
 Run2_1_GEX,/exports/eddie/scratch/nbestard/TK/data/raw_data/2022-03-21/TK_140322/outs/fastq_path/AAAL35KHV,Gene Expression
