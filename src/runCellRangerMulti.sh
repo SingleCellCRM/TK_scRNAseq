@@ -7,6 +7,11 @@
 #$ -l h_vmem=8G
 #$ -pe sharedmem 16
 #$ -t 1-8
+#$ -l test=1
+
+# this test parameter is to avoid my own jobs to land on 
+# the same node as another of my jobs. it is called
+# test as it is still a feature in development in Eddie
 
 # Initialise the environment modules
 . /etc/profile.d/modules.sh
@@ -29,5 +34,5 @@ csv=/exports/eddie/scratch/$USER/TK/src/config-files/config_${SAMPLE}.csv
 # run cellranger
 cellranger multi --id=$SAMPLE --csv=$csv
 
-mkdir -p /exports/eddie/scratch/$USER/TK/outs/CellRanger/
-rsync -rl $SAMPLE /exports/eddie/scratch/$USER/TK/outs/CellRanger/
+mkdir -p "/exports/eddie/scratch/$USER/TK/outs/CellRanger_Run1-7/"
+rsync -rl $SAMPLE "/exports/eddie/scratch/$USER/TK/outs/CellRanger_Run1-7/"
