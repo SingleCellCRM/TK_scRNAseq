@@ -1,0 +1,46 @@
+---
+title: "import in R"
+author: "Nadine Bestard"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    code_folding: hide
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r libs}
+library(here)
+library(DropletUtils)
+```
+
+```{r variables}
+# Create file path for each sample matrix and metadata ------
+# Save the name for each one of the samples (TK_1 to TK_8), adding parttern as the summaries are in the same folder
+samples <- dir(here("outs/CellRanger_Run1-7/"), pattern = "[TK]")
+# for each sample, get the path for the 4 subsamples(TK_1A to TK_8D)
+matrices <- unlist(lapply(samples, function(sample) here("outs/CellRanger_Run1-7", sample, "outs/per_sample_outs/", paste0(sample, LETTERS[1:4]), "count", "sample_filtered_feature_bc_matrix")))
+# import metadata, and specify the factor-> chr with as.is and the int -> factor with colClasses
+metadata <- 
+ read.csv(here("data/metadata.csv"), as.is = c("Sample", "Description"), colClasses = c("Batch"="factor", "ND"="factor", "CMO"="factor", "Day"="factor"))
+```
+
+
+```{r create-object}
+# Create object -----
+sce <- read10xCounts(matrices, samples, version = "auto", col.names = TRUE)
+# add the metadata
+coldata <- colData(sce)
+# keep the rownames (same as colnames of sce)
+names <- row.names(coldata)
+coldata <- merge(x= coldata, y= metadata, by = "Sample", all.x=TRUE)
+# reset the rownames to previous value, as there're lost with merge
+row.names(coldata) <- names
+# assign new coldata back to sce 
+colData(sce) <- coldata
+dir.create(here("processed"), showWarnings = FALSE)
+saveRDS(sce, here("processed","first_sce.Rmd"))
+```
+
