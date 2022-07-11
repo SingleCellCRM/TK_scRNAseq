@@ -40,7 +40,7 @@ coldata <- merge(x= coldata, y= metadata, by = "Sample", all.x=TRUE)
 row.names(coldata) <- names
 # assign new coldata back to sce 
 colData(sce) <- coldata
-dir.create(here("processed"), showWarnings = FALSE)
-saveRDS(sce, here("processed","first_sce.Rmd"))
+dir.create(here("processed/TK_all"), showWarnings = FALSE)
+saveRDS(sce, here("processed","TK_all", "first_sce.Rmd"))
 ```
 
