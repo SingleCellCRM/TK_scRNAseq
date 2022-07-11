@@ -18,13 +18,15 @@ library(DropletUtils)
 
 ```{r variables}
 # Create file path for each sample matrix and metadata ------
-# Save the name for each one of the samples (TK_1 to TK_8), adding parttern as the summaries are in the same folder
-samples <- dir(here("outs/CellRanger_Run1-7/"), pattern = "[TK]")
-# for each sample, get the path for the 4 subsamples(TK_1A to TK_8D)
-matrices <- unlist(lapply(samples, function(sample) here("outs/CellRanger_Run1-7", sample, "outs/per_sample_outs/", paste0(sample, LETTERS[1:4]), "count", "sample_filtered_feature_bc_matrix")))
+# Save the name for each one of the multiplxed samples (TK_1 to TK_8), adding parttern as the summaries are in the same folder
+multi_samples <- dir(here("outs/CellRanger_Run1-7/"), pattern = "[TK]")
+# for each multi-sample, get the path for the 4 subsamples(TK_1A to TK_8D)
+matrices <- unlist(lapply(multi_samples, function(sample) here("outs/CellRanger_Run1-7", sample, "outs/per_sample_outs/",paste0(sample, LETTERS[1:4]), "count", "sample_filtered_feature_bc_matrix")))
 # import metadata, and specify the factor-> chr with as.is and the int -> factor with colClasses
 metadata <- 
- read.csv(here("data/metadata.csv"), as.is = c("Sample", "Description"), colClasses = c("Batch"="factor", "ND"="factor", "CMO"="factor", "Day"="factor"))
+ read.csv(here("data/metadata.csv"), as.is = c("Sample", "Description"), colClasses = c("Chip"="factor", "ND"="factor", "CMO"="factor", "Day"="factor"))
+# extract the individual sample names (TK_1A to TK_8D), *important*: they are in same order as folders. 
+samples <- metadata$Sample
 ```
 
 
@@ -44,3 +46,12 @@ dir.create(here("processed/TK_all"), showWarnings = FALSE)
 saveRDS(sce, here("processed","TK_all", "first_sce.RDS"))
 ```
 
+## Session Info
+
+<details>
+  <summary>Click to expand </summary>
+```{r}
+sessionInfo()
+```
+
+</details>
