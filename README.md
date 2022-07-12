@@ -6,6 +6,8 @@ In *docs* there are files with:
 
 - analysis steps we would like to carry on
 
+*data* contains the raw data from this project, and also from Gioele La Manno, we will use for annotation
+
 In *src* are saved the scripts to run Cellranger and generate summary reports.
 
 In *rmarkdown* we have: 
@@ -14,5 +16,25 @@ In *rmarkdown* we have:
 
 - QC: using isOutlier threshold separate by chip. 
 
+*processed* contains intermediate R objects
+
 The R analysis project uses *renv*, ensuring we can use the same set of libraries anywhere we clone the project.
+
+
+
+
+**TODO:**
+
+The normalisation by deconvolution
+
+Feature selection and dimensional reduction 
+
+Batch correction?
+
+Clustering at different resolutions
+
+Annotation (with Gioele la manno)
+
+(...)
+
 
