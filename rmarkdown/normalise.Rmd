@@ -19,6 +19,7 @@ library(scater) # For qc and visualisation
 library(scran) # For normalisation
 library(Matrix) # For log transorming the raw data
 library(ggplot2) # To add titles to plots
+library(batchelor) # nromalisation per batch
 ```
 
 ```{r matlog2}
@@ -71,7 +72,9 @@ between cells [(Lun et al.,
 2016)](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4848819/)
 
 The normalisation will be preformed within batches, by using the `block=batch` 
-argument when performing the quick clusters
+argument when performing the quick clusters, and this infromation is used to 
+Perform scaling normalization within each batch to provide comparable results to the lowest-coverage batch.
+This removes systematic differences in coverage across batches to simplify downstream comparisons.
 
 ```{r norm}
 # Only compute if first time
@@ -85,8 +88,9 @@ if (!(file.exists(here("processed", project,  "sce_norm_01.RDS")))) {
   sce <- computeSumFactors(sce, cluster = quick_clusters, min.mean = 0.1)
   # Check that there are not negative size factors
   summary(sizeFactors(sce))
-  # Apply size factors and log transform them
-  sce <- logNormCounts(sce)
+  # Apply size factors and log transform them, 
+  # Perform scaling normalization within each batch to provide comparable results to the lowest-coverage batch
+  sce <- multiBatchNorm(sce, batch = sce$Chip)
   # Also log normalise the raw counts
   assay(sce, "logcounts_raw") <- matLog2(counts(sce))
   saveRDS(sce, here("processed", project,  "sce_norm_01.RDS"))
