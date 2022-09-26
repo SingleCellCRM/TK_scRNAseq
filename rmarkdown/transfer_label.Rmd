@@ -1,0 +1,95 @@
+---
+title: "Transfer labels"
+author: "Nadine Bestard"
+date: "`r Sys.Date()`"
+output: 
+html_document:
+  code_folding: hide
+---
+
+
+
+
+## Set up
+
+
+```{r set-up, message=FALSE, warning=FALSE}
+library(scRNAseq) #load laManno Dataset hES
+library(SingleR) # annotate dataset
+library(scuttle) # normalise reference
+library(here) # reproducible paths
+library(pheatmap) # diagnostic plots
+library(scater) # dimplots
+```
+
+```{r}
+project <- "TK_all"
+source(here("src","R", "colours.R"))
+```
+
+```{r load-sce}
+sce <- readRDS(here("processed", project, "sce_corrected.RDS"))
+project <- "TK_all"
+```
+
+# Import reference 
+
+```{r load-refs}
+lamanno_ips <- LaMannoBrainData("human-ips", ensembl=TRUE)
+lamanno_es <- LaMannoBrainData("human-es", ensembl=TRUE)
+genes <- intersect(rownames(lamanno_ips), rownames(lamanno_es))
+lamanno <- cbind(lamanno_ips[genes,],lamanno_es[genes,])
+```
+
+```{r normalise}
+lamanno <- logNormCounts(lamanno)
+```
+
+# Annotate
+
+
+```{r reference}
+if(!file.exists(here("processed", project, "annotation.RDS"))){
+# switch to ENESMBLE notation in the query dataset
+rownames(sce) <- rowData(sce)$ID
+# We choose wilcox as "This is slower but more appropriate for single-cell data compared to the default marker detection algorithm"
+# from singleR vignette
+annotation <- SingleR(sce, ref=lamanno, labels= lamanno$Cell_type, de.method = "wilcox")
+# come back to gene row names
+rownames(sce) <- rowData(sce)$symb_uniq
+saveRDS(annotation, here("processed", project, "annotation.RDS"))
+}else{
+  annotation <- readRDS(here("processed", project, "annotation.RDS"))
+}
+```
+
+# Diagnostics
+
+
+```{r}
+plotScoreHeatmap(annotation)
+# only ips
+ips_labs <-grep("^i", unique(annotation$labels), value = TRUE )
+ips_cells <- rownames(annotation)[annotation$labels %in% ips_labs]
+plotScoreHeatmap(annotation, labels.use = ips_labs, cells.use = ips_cells)
+#only es
+es_labs <-grep("^e", unique(annotation$labels), value = TRUE )
+es_cells <- rownames(annotation)[annotation$labels %in% es_labs]
+plotScoreHeatmap(annotation, labels.use = es_labs, cells.use = es_cells)
+```
+# Transfer back to query dataset. 
+```{r}
+sce$lamanno <- as.factor(annotation$labels)
+plotReducedDim(sce, dimred= "UMAP", colour_by = "lamanno") + scale_colour_manual(values=cols)
+
+plotReducedDim(sce, colour_by = "lamanno", dimred = "UMAP", point_size = 0.1, other_fields = "lamanno" ) + facet_wrap(~lamanno) + scale_colour_manual(values=cols)
+```
+
+```{r save}
+if (!(file.exists(
+  here("processed", project,  "sce_labels.RDS")
+))) {
+saveRDS(sce, here("processed", project,  "sce_labels.RDS") )
+}
+```
+
