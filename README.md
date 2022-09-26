@@ -16,6 +16,11 @@ In *rmarkdown* we have:
 
 - QC: using isOutlier threshold separate by chip. 
 
+- Normalisation by deconvolution: also by chip
+
+- Feature selection and batch correction
+
+
 *processed* contains intermediate R objects
 
 The R analysis project uses *renv*, ensuring we can use the same set of libraries anywhere we clone the project.
@@ -24,12 +29,6 @@ The R analysis project uses *renv*, ensuring we can use the same set of librarie
 
 
 **TODO:**
-
-The normalisation by deconvolution
-
-Feature selection and dimensional reduction 
-
-Batch correction?
 
 Clustering at different resolutions
 
