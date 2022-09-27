@@ -1,0 +1,19 @@
+[gene-expression]
+ref,/exports/eddie/scratch/nbestard/TK/data/genomeref/refdata-gex-GRCh38-2020-A,
+
+[libraries]
+fastq_id,fastqs,feature_types
+Run5_2_GEX,/exports/eddie/scratch/nbestard/TK/data/raw_data/2022-06-04_01/TK_020622-01/outs/fastq_path/AAAMMGNHV/,Gene Expression
+Run4_2_GEX,/exports/eddie/scratch/nbestard/TK/data/raw_data/2022-05-20/TK_190522/outs/fastq_path/AAAMGTYHV,Gene Expression
+Run3_2_GEX,/exports/eddie/scratch/nbestard/TK/data/raw_data/2022-05-03/TK_280422/outs/fastq_path/AAAM5MVHV,Gene Expression
+Run2_2_GEX,/exports/eddie/scratch/nbestard/TK/data/raw_data/2022-03-21/TK_140322/outs/fastq_path/AAAL35KHV,Gene Expression
+Run2_2_MP,/exports/eddie/scratch/nbestard/TK/data/raw_data/2022-03-21/TK_140322/outs/fastq_path/AAAL35KHV,Multiplexing Capture
+2_GEX,/exports/eddie/scratch/nbestard/TK/data/raw_data/2022-02-03/TK_190122_Reanalysis/outs/fastq_path/AAAK3JYHV,Gene Expression
+2_MP,/exports/eddie/scratch/nbestard/TK/data/raw_data/2022-02-03/TK_190122_Reanalysis/outs/fastq_path/AAAK3JYHV,Multiplexing Capture
+
+[samples]
+sample_id,cmo_ids,description
+TK_2A,CMO309,RC17Day16-UKProtocol-Biologicalreplicate1(ND43)
+TK_2B,CMO310,RC17Day16-UKProtocol-Biologicalreplicate2(ND52)
+TK_2C,CMO311,MShef7Day16-UKProtocol-Biologicalreplicate1(ND44)
+TK_2D,CMO312,MShef7Day16-UKProtocol-Biologicalreplicate2(ND46)

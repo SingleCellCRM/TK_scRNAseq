@@ -1,0 +1,20 @@
+[gene-expression]
+ref,/exports/eddie/scratch/nbestard/TK/data/genomeref/refdata-gex-GRCh38-2020-A
+force-cells,22750
+
+[libraries]
+fastq_id,fastqs,feature_types
+Run6_8_GEX,/exports/eddie/scratch/nbestard/TK/data/raw_data/2022-06-04_02/TK_020622-02/outs/fastq_path/AAAMMHJHV/,Gene Expression
+Run4_8_GEX,/exports/eddie/scratch/nbestard/TK/data/raw_data/2022-05-20/TK_190522/outs/fastq_path/AAAMGTYHV,Gene Expression
+Run3_8_GEX,/exports/eddie/scratch/nbestard/TK/data/raw_data/2022-05-03/TK_280422/outs/fastq_path/AAAM5MVHV,Gene Expression
+Run2_8_GEX,/exports/eddie/scratch/nbestard/TK/data/raw_data/2022-03-21/TK_140322/outs/fastq_path/AAAL35KHV,Gene Expression
+Run2_8_MP,/exports/eddie/scratch/nbestard/TK/data/raw_data/2022-03-21/TK_140322/outs/fastq_path/AAAL35KHV,Multiplexing Capture
+8_GEX,/exports/eddie/scratch/nbestard/TK/data/raw_data/2022-02-03/TK_190122_Reanalysis/outs/fastq_path/AAAK3JYHV,Gene Expression
+8_MP,/exports/eddie/scratch/nbestard/TK/data/raw_data/2022-02-03/TK_190122_Reanalysis/outs/fastq_path/AAAK3JYHV,Multiplexing Capture
+
+[samples]
+sample_id,cmo_ids,description
+TK_8A,CMO309,CiRAiPSC#1(1231A3)-Day28-JPProtocol-Biologicalreplicate1(41)
+TK_8B,CMO310,CiRAiPSC#1(1231A3)-Day28-JPProtocol-Biologicalreplicate2(43)
+TK_8C,CMO311,CiRAiPSC#1(1231A3)-Day28-UKProtocol-Biologicalreplicate1(35)
+TK_8D,CMO312,CiRAiPSC#1(1231A3)-Day28-UKProtocol-Biologicalreplicate2(39)
