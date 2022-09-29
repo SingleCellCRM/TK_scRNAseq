@@ -20,6 +20,9 @@ In *rmarkdown* we have:
 
 - Feature selection and batch correction
 
+- Label transfer (from Gioele LaManno's)
+
+
 
 *processed* contains intermediate R objects
 
@@ -31,8 +34,6 @@ The R analysis project uses *renv*, ensuring we can use the same set of librarie
 **TODO:**
 
 Clustering at different resolutions
-
-Annotation (with Gioele la manno)
 
 (...)
 
