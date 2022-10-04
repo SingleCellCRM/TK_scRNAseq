@@ -3,8 +3,8 @@ title: "Transfer labels"
 author: "Nadine Bestard"
 date: "`r Sys.Date()`"
 output: 
-html_document:
-  code_folding: hide
+  html_document:
+    code_folding: hide
 ---
 
 
@@ -28,21 +28,35 @@ source(here("src","R", "colours.R"))
 ```
 
 ```{r load-sce}
+if (!(file.exists(
+  here("processed", project,  "sce_labels.RDS")
+))) {
 sce <- readRDS(here("processed", project, "sce_corrected.RDS"))
+} else{
+  sce <- readRDS(here("processed", project,  "sce_labels.RDS"))
+}
 project <- "TK_all"
 ```
 
 # Import reference 
 
 ```{r load-refs}
+if (!(file.exists(
+  here("processed", project,  "sce_labels.RDS")
+))) {
 lamanno_ips <- LaMannoBrainData("human-ips", ensembl=TRUE)
 lamanno_es <- LaMannoBrainData("human-es", ensembl=TRUE)
 genes <- intersect(rownames(lamanno_ips), rownames(lamanno_es))
 lamanno <- cbind(lamanno_ips[genes,],lamanno_es[genes,])
+}
 ```
 
 ```{r normalise}
+if (!(file.exists(
+  here("processed", project,  "sce_labels.RDS")
+))) {
 lamanno <- logNormCounts(lamanno)
+}
 ```
 
 # Annotate
