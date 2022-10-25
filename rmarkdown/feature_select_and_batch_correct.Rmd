@@ -217,68 +217,38 @@ umap4 + facet_wrap(~Chip)
 [accurate integration of single-cells](https://www.nature.com/articles/s41592-019-0619-0)
 top method from [A benchmark of batch-effect correction methods for single-cell RNA sequencing data](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-019-1850-9)
 
+The results for the convergence plot are suspicious, similar to [these](https://github.com/immunogenomics/harmony/issues/48)
+There is no implemented solution yet, so harmony is discarded. 
+
 ```{r harmony}
 if (!(file.exists(
   here("processed", project,  "sce_corrected.RDS")
 ))) {
   set.seed(1)
   PCA <- reducedDim(sce, "PCA")
-  harmony <- HarmonyMatrix(PCA, meta_data=colData(sce), vars_use="Chip" , do_pca=FALSE )
-  reducedDim(sce, "harmony") <- harmony
-  sce <- runUMAP(sce,  dimred="harmony", name="UMAP-harmony")
-  sce <- runTSNE(sce, dimred="harmony", name="TSNE-harmony")
+  harmony <- HarmonyMatrix(PCA, meta_data=colData(sce), vars_use="Chip" , do_pca=FALSE, plot_convergence = TRUE )
 }
 ```
+```{r eval=FALSE, include=FALSE}
+# Attempt to see if by sorting #25 #48 would also disapear
+# installed the devel version and then:
+library(Seurat)
+srt <- as.Seurat(sce)
+harmony_srt <- RunHarmony(srt, "Chip" , plot_convergence = TRUE, kmeans_init_nstart=200, kmeans_init_iter_max=1000 , reduction = "PCA")
 
-```{r plot-harmony}
-umap <- plotReducedDim(sce, colour_by = "Chip", dimred = "UMAP-harmony", point_size = 0.1, other_fields = "Chip" ) + ggtitle("UMAP after batch correction") 
-umap
-umap + facet_wrap(~Chip)
-
-tsne <- plotReducedDim(sce, colour_by = "Chip", dimred = "TSNE-harmony", point_size = 0.1, other_fields = "Chip" ) + ggtitle("TSNE after batch correction") 
-tsne
-tsne + facet_wrap(~Chip)
-
+# but still the same convergence plot. 
 ```
 
-```{r other-umaps-harmony}
-if (!(file.exists(
-  here("processed", project,  "sce_corrected.RDS")
-))) {
-# I test another seed, result is very similar
-set.seed(1000)
-sce <- runUMAP(sce,  dimred="harmony", name="UMAP-seed-harmony")
-# increasing nighbors so the global structure is better preserved,a costa of the local
-set.seed(100)
-sce <- runUMAP(sce,  dimred="harmony", name="UMAP-global-harmony", n_neighbors = 100)
-# decrease neighbors, where the local structure is better preserved.
-set.seed(100)
-sce <- runUMAP(sce,  dimred="harmony", name="UMAP-local-harmony", n_neighbors = 5)
-}
-#plots
-umap2 <- plotReducedDim(sce, colour_by = "Chip", dimred = "UMAP-seed-harmony", point_size = 0.1, other_fields = "Chip" ) + ggtitle("UMAP after batch correction - another seed") 
-umap2
-umap2 + facet_wrap(~Chip)
-
-
-umap3 <- plotReducedDim(sce, colour_by = "Chip", dimred = "UMAP-global-harmony", point_size = 0.1, other_fields = "Chip" ) + ggtitle("UMAP after batch correction - Global structure") 
-umap3
-umap3 + facet_wrap(~Chip)
-
-umap4 <- plotReducedDim(sce, colour_by = "Chip", dimred = "UMAP-local-harmony", point_size = 0.1, other_fields = "Chip" ) + ggtitle("UMAP after batch correction - Local structure") 
-umap4
-umap4 + facet_wrap(~Chip)
-```
 
 # Pick a representation
 
-Now, default UMAP and TSNE will contain the harmony correction
+Now, default UMAP and TSNE will contain one of the MNN corrections
 ```{r}
 if (!(file.exists(
   here("processed", project,  "sce_corrected.RDS")
 ))) {
-  reducedDim(sce, "UMAP") <- reducedDim(sce, "UMAP-global-harmony")
-  reducedDim(sce, "TSNE") <- reducedDim(sce, "TSNE-harmony")
+  reducedDim(sce, "UMAP") <- reducedDim(sce, "UMAP-mnn")
+  reducedDim(sce, "TSNE") <- reducedDim(sce, "TSNE-mnn")
 }
 ```
 
