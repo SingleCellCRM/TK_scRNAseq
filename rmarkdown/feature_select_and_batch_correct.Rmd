@@ -27,10 +27,20 @@ project <- "TK_all"
 ```
 
 ```{r load-sce}
-sce <- readRDS(here("processed", project, "sce_norm_01.RDS"))
+sce <- readRDS(here("processed", project, "sce_norm_newmeta_01.RDS"))
 ```
 
 # Feature selection
+
+## Remove CMO
+
+CellRanger added CMO tag as a gene name. These are not genes and should not be part of the analysis
+
+```{r CMO}
+CMO_genes <- grep("^CMO3", rownames(sce), value = TRUE)
+keep_genes <- !(rownames(sce) %in% CMO_genes)
+sce <- sce[keep_genes,]
+```
 
 ## Motivation
 
@@ -103,7 +113,11 @@ plotReducedDim(sce, dimred="UMAP", colour_by="Chip", point_size=0.1, point_alpha
 
 
 ```{r savedim}
-saveRDS(sce, here("processed", project,  "sce_dimred_01.RDS"))
+if (!(file.exists(
+  here("processed", project,  "sce_dimred_01.RDS")
+))) {
+  saveRDS(sce, here("processed", project,  "sce_dimred_01.RDS"))
+}
 ```
 
 # Batch correct with fastMNN
