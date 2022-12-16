@@ -20,6 +20,7 @@ library(ggplot2) # modify plots
 library(here) #reproducible paths
 library(batchelor) #batch correct with fastmnn
 library(harmony) # batch correct harmony
+#library(Seurat) # batch correct CCA #moved to diferent script
 ```
 
 ```{r}
@@ -239,6 +240,11 @@ harmony_srt <- RunHarmony(srt, "Chip" , plot_convergence = TRUE, kmeans_init_nst
 # but still the same convergence plot. 
 ```
 
+# Seurat
+
+Finally we test integration with [Seurat 3](https://www.cell.com/cell/fulltext/S0092-8674(19)30559-8). Also in the top 3 methods in [A benchmark of batch-effect correction methods for single-cell RNA sequencing data](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-019-1850-9)
+
+### I moved this into analyse_up_to_clustering_with_Seurat.Rmd
 
 # Pick a representation
 

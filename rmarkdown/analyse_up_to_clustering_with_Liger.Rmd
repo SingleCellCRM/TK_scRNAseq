@@ -1,0 +1,175 @@
+---
+title: "analyse up to clustering with Seurat"
+author: "Nadine Bestard"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    code_folding: hide
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r set-up, message=FALSE, warning=FALSE}
+library(SingleCellExperiment) # load previous processed sce
+library(Seurat) # rest of analysis
+library(SeuratWrappers) # to use liger with seurat functions
+library(clustree) # show relationship clustering
+library(here) #paths
+library(rliger)# integration
+
+```
+
+```{r}
+project <- "TK_all/seurat"
+source(here("src/R/colours.R"))
+```
+
+```{r load-sce}
+if(!file.exists(here("processed",project, "srt_liger.RDS"))){
+  sce <- readRDS(here("processed","TK_all", "sce_norm_newmeta_01.RDS"))
+}
+```
+Workflow from [here](https://satijalab.org/seurat/articles/integration_introduction.html#introduction-to-scrna-seq-integration-1)
+
+```{r functions, echo=FALSE}
+# plot all the seurat or sce dim reduction
+plot_list_func <- function(obj,
+                           col_pattern="RNA_snn_res.", 
+                           plot_cols, 
+                           clust_lab = TRUE,
+                           label_size = 1,
+                           num_col = 4,
+                           reduction = "umap",
+                           # todo add a save FALSE
+                           save_dir = getwd(),
+                           width=7,
+                           height=5){
+if(class(obj)[1] == "Seurat"){
+  extr_res_col <- grep(pattern = col_pattern, names(obj@meta.data))
+  res_names <- names(obj@meta.data[extr_res_col])
+  # gtools function, sorts gene_names alphanumeric:
+  res_names <- gtools::mixedsort(res_names) 
+  for(i in 1: length(res_names)){
+  #pdf(paste0(save_dir, 
+    #           res_names[i], "_umap.pdf"), width=width, height=height)
+  dim_plot <- DimPlot(obj, 
+                          reduction = reduction, 
+                          cols= plot_cols,
+                          group.by = res_names[i],
+                          label = clust_lab,
+                          label.size = label_size) + NoLegend()
+  print(dim_plot)
+ # dev.off()
+ # print(dim_plot)
+  }
+}else if (class(obj)[1] == "SingleCellExperiment"){
+  names <- grep(pattern = col_pattern, names(colData(sce)), value = TRUE)
+  ks <- stringr::str_remove(string = names, pattern = col_pattern)
+  # gtools function, sorts gene_names alphanumeric:
+  names <- gtools::mixedsort(names) 
+  # plot directly from the sce_clusters_01.RDS
+  idx <- c(1:length(names))
+  for (i in idx) {
+    k <- ks[i]
+    cluster_name <- names[i]
+    plotDim <-
+      plotReducedDim(
+        obj,
+        dimred = reduction,
+        colour_by = cluster_name,
+        point_size = label_size,
+        point_alpha = 0.3,
+        text_by = cluster_name,
+        text_size = 3
+      )  + scale_colour_manual(values = plot_cols) + ggtitle(paste("Clustering with resolution/k =", k))
+    print(plotDim)
+  }
+}else{
+  stop("object must be seurat or singlecellexperiment")
+}
+  
+}
+
+```
+
+# Feature selection
+
+## Remove CMO
+
+CellRanger added CMO tag as a gene name. These are not genes and should not be part of the analysis
+
+```{r CMO}
+if(!file.exists(here("processed",project, "srt_liger.RDS"))){
+CMO_genes <- grep("^CMO3", rownames(sce), value = TRUE)
+keep_genes <- !(rownames(sce) %in% CMO_genes)
+sce <- sce[keep_genes,]
+}
+```
+
+## Prepare for intagration with Liger
+
+```{r}
+if(!file.exists(here("processed",project, "srt_liger.RDS"))){
+  srt <- as.Seurat(sce)
+  srt <- NormalizeData(srt)
+  srt <- FindVariableFeatures(srt)
+  srt <- ScaleData(srt, split.by = "Chip", do.center = FALSE)
+}
+
+```
+
+# Integration with Liger
+
+```{r integrate}
+if(!file.exists(here("processed",project, "srt_liger.RDS"))){
+  set.seed(1)
+  combined <- RunOptimizeALS(srt, k = 25, lambda = 5, split.by = "Chip")
+  combined <- RunQuantileNorm(combined, split.by = "Chip")
+  # You can optionally perform Louvain clustering (`FindNeighbors` and `FindClusters`) after
+  # `RunQuantileNorm` according to your needs
+  combined <- FindNeighbors(combined, reduction = "iNMF", dims = 1:25)
+  combined <- FindClusters(combined, resolution = 0.3)
+  # Dimensional reduction and plotting
+  combined <- RunUMAP(combined, dims = 1:ncol(combined[["iNMF"]]), reduction = "iNMF", reduction.name = "umap_liger", reduction.key = "UMAP_Liger_")
+  DimPlot(combined, group.by = c("Chip"), reduction = "umap_liger")
+  saveRDS(combined, here("processed",project, "srt_liger.RDS"))
+}else{
+  combined <- readRDS(here("processed",project, "srt_liger.RDS"))
+}
+
+```
+
+# Dimred
+```{r}
+if(!file.exists(here("processed",project, "srt_liger_clustered.RDS"))){
+
+combined <- FindNeighbors(combined, reduction = "iNMF", dims = 1:25)
+srt <- FindClusters(combined, 
+                    resolution = c(0.01, 0.04, 0.05, 
+                                 seq(from = 0.1, to = 1, by = 0.1))
+                   )
+srt_cluster_names <- grep("originalexp_snn_res", names(srt@meta.data), value = TRUE)
+srt_clusters_metadata <- srt[[srt_cluster_names]]
+
+saveRDS(srt_clusters_metadata, here("processed", project, "srt_liger_clusters.RDS"))
+saveRDS(srt, here("processed", project, "srt_liger_clustered.RDS"))
+}else{
+  srt_clusters_metadata <-
+    readRDS( here("processed", project, "srt_liger_clusters.RDS"))
+  srt <- readRDS( here("processed", project, "srt_liger_clustered.RDS"))
+}
+
+plot_list_func(srt, 
+               col_pattern="originalexp_snn_res", 
+               plot_cols = cols,
+               reduction = "umap_liger", 
+               label_size = 4 
+               )
+```
+
+
+```{r fig.height=14, fig.width=14}
+clustree(srt_clusters_metadata, prefix = "originalexp_snn_res.", edge_arrow = FALSE)
+```
