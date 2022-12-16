@@ -31,7 +31,7 @@ source(here("src","R", "colours.R"))
 if (!(file.exists(
   here("processed", project,  "sce_labels.RDS")
 ))) {
-sce <- readRDS(here("processed", project, "sce_corrected.RDS"))
+sce <- readRDS(here("processed", project, "sce_clustered_combined.RDS"))
 } else{
   sce <- readRDS(here("processed", project,  "sce_labels.RDS"))
 }
