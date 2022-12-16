@@ -94,6 +94,9 @@ plotScoreHeatmap(annotation, labels.use = es_labs, cells.use = es_cells)
 # Transfer back to query dataset. 
 ```{r}
 sce$lamanno <- as.factor(annotation$pruned.labels)
+# I want the NA as a level, for later representation. 
+levels(sce$lamanno) <-c(levels(sce$lamanno), "NA")
+sce$lamanno[(is.na(sce$lamanno))] <- "NA"
 plotReducedDim(sce, dimred= "UMAP", colour_by = "lamanno") + scale_colour_manual(values=cols)
 
 plotReducedDim(sce, colour_by = "lamanno", dimred = "UMAP", point_size = 0.1, other_fields = "lamanno" ) + facet_wrap(~lamanno) + scale_colour_manual(values=cols)
