@@ -1,0 +1,130 @@
+---
+title: "Differential expression Day 28 RC17 UK vs CHIR"
+author: "Nadine Bestard"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r library, message=FALSE, warning=FALSE}
+
+library(here)
+library(scater)
+library(edgeR) # for DE # order important!
+library(Seurat) # for mast
+```
+
+```{r}
+project <- "TK_all"
+# load object
+sce <- readRDS(here("processed", project, "sce_labels.RDS"))
+```
+
+
+## EdgeR
+```{r bioconductor-edgeR}
+# subset only the samples of interest
+sce <- sce[, sce$"Sample" %in% c("TK_4A", "TK_4B", "TK_4C", "TK_4D")]
+# Using 'label' and 'sample' as our two factors; each column of the output
+# corresponds to one unique combination of these two factors.
+summed <- aggregateAcrossCells(sce, 
+    id=colData(sce)[, "Sample"])
+summed
+
+
+# Creating up a DGEList object for use in edgeR:
+dge <- DGEList(counts(summed), samples=colData(summed))
+
+# check none of the groups has less than 10 cells
+discarded <- summed$ncells < 10
+sum(summed$ncells < 10)
+
+# Filter genes with specific function from edgeR
+keep <- filterByExpr(dge, group=summed$Protocol)
+summary(keep)
+dge <- dge[keep,]
+
+
+dge <- calcNormFactors(dge)
+
+par(mfrow=c(2,3))
+for (i in seq_len(ncol(dge))) {
+    plotMD(dge, column=i)
+}
+
+# to add the mds plot I had to add the library because I had load packages in different order. 
+limma::plotMDS(edgeR::cpm(dge, log=TRUE), 
+    col=ifelse(dge$samples$Protocol == "CHIR", "red", "blue"))
+
+# Set the baseline to be UK proocol 
+dge$samples$Protocol <- factor(dge$samples$Protocol, levels = c("UK", "CHIR"))
+
+# Calculate the DETECTION RATE (but at the end I don't use it.)
+dge$samples$cdr <- scale(colMeans(dge$counts > 0))
+
+# model
+design <- model.matrix(~ factor(Protocol) , dge$samples)
+design
+
+# dispersions
+dge <- estimateDisp(dge, design)
+summary(dge$trended.dispersion)
+
+# Run DE
+fit <- glmQLFit(dge, design, robust=TRUE)
+res <- glmQLFTest(fit, coef=ncol(design))
+summary(decideTests(res))
+
+results_edgeR <- res$table
+topTags(res)
+
+# add percentages
+ncells <- dim(sce[, sce$Protocol == "UK"])[2]
+ncells_positive <- rowSums(counts(sce[rownames(results_edgeR), sce$Protocol == "UK"])>0)
+results_edgeR$pct.UK <- ncells_positive/ncells
+
+ncells <- dim(sce[, sce$Protocol == "CHIR"])[2]
+ncells_positive <- rowSums(counts(sce[rownames(results_edgeR), sce$Protocol == "CHIR"])>0)
+
+results_edgeR$pct.CHIR <- ncells_positive/ncells
+
+# add the adjusted pvalue
+results_edgeR$p_val_adj <- as.data.frame(topTags(res, n=nrow(results_edgeR), sort.by = "none"))$FDR
+
+#filter only for significant pvalue
+results_edgeR <- results_edgeR[results_edgeR$p_val_adj < 0.05,]
+
+write.csv(results_edgeR, here("outs", project, "DE", "DE_UKvsCHIR_day28_edgeR.csv"))
+```
+
+
+## MAST
+
+```{r mast}
+srt <- as.Seurat(sce)
+Idents(srt) <- "Protocol"
+results_mast <- FindMarkers(srt, ident.1 = "CHIR", ident.2 = "UK", test.use = "MAST")
+write.csv(results_mast, here("outs", project, "DE", "DE_UKvsCHIR_day28_MAST.csv"))
+```
+
+## Both
+```{r}
+compare<- function(method1, method2){
+  return(sum(rownames(method1) %in% rownames(method2)))
+}
+merge_with_suffix <- function(x, y, by, suffixes = c(".x", ".y")){
+mrg<-(merge(x,y, by = by, suffixes = suffixes))
+mrg <- setNames(mrg,paste0(names(mrg),ifelse(names(mrg) %in% setdiff(names(x),names(y)),suffixes[1],"")))
+mrg <- setNames(mrg,paste0(names(mrg),ifelse(names(mrg) %in% setdiff(names(y),names(x)),suffixes[2],"")))
+
+}
+compare(results_edgeR, results_mast)
+
+results_both <- merge_with_suffix(results_edgeR, results_mast, by = 0, suffixes = c("_edgeR", "_mast"))
+
+write.csv(results_both , here("outs", project, "DE", "DE_UKvsCHIR_day28_mast&edgeR.csv"))
+```
+
