@@ -5,7 +5,7 @@ project <- "TK_all"
 sce <- readRDS(here("processed", project, "sce_labels.RDS"))
 
 # correlations we want.
-genes <- c("CORIN", "TH", "EN1", "PITX2", "DBX1", "NKX2-1", "GBX2", "HOXA2", "EGR2", "NKX6-1", "NPAS1", "POU4F1", "CD99", "COL1A1", "COL1A2", "DCN", "LUM", "ASCL1")
+genes <- c("CORIN", "TH", "EN1", "PITX2", "DBX1", "NKX2-1", "GBX2", "HOXA2", "EGR2", "NKX6-1", "NPAS1", "POU4F1", "CD99", "COL1A1", "COL1A2", "DCN", "LUM", "ASCL1", "DCX", "TUBB3", "MAPT")
 
 ### for all dataset
 result_correlation <- qlcMatrix::corSparse(t(logcounts(sce)),
