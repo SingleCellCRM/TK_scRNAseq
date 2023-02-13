@@ -4,12 +4,15 @@ project <- "TK_all"
 # load object
 sce <- readRDS(here("processed", project, "sce_labels.RDS"))
 
+
 # correlations we want.
 genes <- c("CORIN", "TH", "EN1", "PITX2", "DBX1", "NKX2-1", "GBX2", "HOXA2", "EGR2", "NKX6-1", "NPAS1", "POU4F1", "CD99", "COL1A1", "COL1A2", "DCN", "LUM", "ASCL1", "DCX", "TUBB3", "MAPT")
 
 ### for all dataset
 result_correlation <- qlcMatrix::corSparse(t(logcounts(sce)),
                                            t(logcounts(sce)[genes,]))
+
+# https://support.bioconductor.org/p/p132986/ why logged
 rownames(result_correlation) <- rownames(sce)
 colnames(result_correlation) <- genes
 
