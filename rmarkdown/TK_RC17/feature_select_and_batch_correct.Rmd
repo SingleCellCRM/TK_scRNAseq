@@ -1,0 +1,236 @@
+---
+title: "Feature selection and batch correction"
+author: "Nadine Bestard"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    code_folding: hide
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+The workflow and explanations bellow are from [OSCA](https://bioconductor.org/books/release/OSCA/dimensionality-reduction.html)
+
+```{r set-up, message=FALSE, warning=FALSE}
+library(scran) # For feature selcetion
+library(scater) # for pca
+library(ggplot2) # modify plots
+library(here) #reproducible paths
+library(batchelor) #batch correct with fastmnn
+```
+
+```{r}
+project <- "TK_RC17"
+```
+
+```{r load-sce}
+sce <- readRDS(here("processed", "TK_all", "sce_norm_newmeta_01.RDS"))
+```
+
+# Subset for RC17
+
+```{r subset}
+#select only one cellline
+sce <- sce[,sce$CellLine == "RC17"]
+# select only genes expressed in this cellline
+keep_feature <- rowSums(counts(sce) > 0) > 1
+sce <- sce[keep_feature,]
+```
+
+# Feature selection
+
+## Remove CMO
+
+CellRanger added CMO tag as a gene name. These are not genes and should not be part of the analysis
+
+```{r CMO}
+CMO_genes <- grep("^CMO3", rownames(sce), value = TRUE)
+keep_genes <- !(rownames(sce) %in% CMO_genes)
+sce <- sce[keep_genes,]
+```
+
+
+## Motivation
+
+We often use scRNA-seq data in exploratory analyses to characterize heterogeneity across cells. Procedures like clustering and dimensionality reduction compare cells based on their gene expression profiles, which involves aggregating per-gene differences into a single (dis)similarity metric between a pair of cells. The choice of genes to use in this calculation has a major impact on the behavior of the metric and the performance of downstream methods. We want to select genes that contain useful information about the biology of the system (Highly variable genes, HVGs) while removing genes that contain random noise. This aims to preserve interesting biological structure without the variance that obscures that structure, and to reduce the size of the data to improve computational efficiency of later steps.
+
+## Quantify per-gene variation
+
+We quantify per-gene variation computing the variance of the log-normalized expression values (referred to as "log-counts" for simplicity) for each gene across all cells in the population (A. T. L. Lun, McCarthy, and Marioni 2016). We use modelGeneVar() that does also corrects for the abundance of each gene. We are not interested in HVGs driven by batch effects, so we focus on genes that are highly variable witin each batch (1-6), then statistics are combined across batches. 
+
+```{r}
+#The density weights are removed because the genes
+# with highest mean abundance are also HVG, this avoids overfiting
+gene_var_df <- modelGeneVar(sce, density.weights=FALSE, block = sce$Chip )
+gene_var <- metadata(gene_var_df)
+#plot(gene_var$mean, gene_var$var, xlab= "Mean of log-expression", ylab= "Variance of log-expression")
+#curve(gene_var$trend(x), lwd=2, add=T, col = "red")
+
+gene_var_per_block <- gene_var_df$per.block
+for (i in colnames(gene_var_per_block)) {
+    current <- gene_var_per_block[[i]]
+    plot(current$mean, current$total, main=i, pch=16, cex=0.5,
+        xlab="Mean of log-expression", ylab="Variance of log-expression")
+    curfit <- metadata(current)
+    curve(curfit$trend(x), col='dodgerblue', add=TRUE, lwd=2) 
+}
+```
+
+## Select the HVGs
+
+The next step is to select the subset of HVGs to use in downstream analyses. The simplest HVG selection strategy is to take the top X genes with the largest values for the relevant variance metric. Here I select the top 15 % of genes.
+
+```{r}
+hvgs <- getTopHVGs(gene_var_df, prop=0.15)
+# save them in the object
+rowSubset(sce) <- hvgs
+```
+
+This leaves us with `r length(hvgs)` highly variable genes.
+
+
+# Linear dimensional reduction (PCA)
+
+## Motivation
+Principal components analysis (PCA) discovers axes in high-dimensional space that capture the largest amount of variation. When applying PCA to scRNA-seq data, our assumption is that biological processes affect multiple genes in a coordinated manner. This means that the earlier PCs are likely to represent biological structure as more variation can be captured by considering the correlated behavior of many genes. By comparison, random technical or biological noise is expected to affect each gene independently. There is unlikely to be an axis that can capture random variation across many genes, meaning that noise should mostly be concentrated in the later PCs. This motivates the use of the earlier PCs in our downstream analyses, which concentrates the biological signal to simultaneously reduce computational work and remove noise.
+
+
+## Run PCA and choose PCs
+```{r run-PCA}
+set.seed(1000)
+sce <- runPCA(sce)
+```
+
+```{r elbow-plot}
+pct_var <- attr(reducedDim(sce, "PCA"), "percentVar")
+plot(pct_var, log="y", xlab="PC", ylab="pct variance explained")
+# There is a small drop at 32 PCs. 
+reducedDim(sce, "PCA") <- reducedDim(sce, "PCA")[,1:32]
+``` 
+
+
+# Batch correct with fastMNN
+
+```{r batch}
+
+if (!(file.exists(
+  here("processed", project,  "sce_corrected.RDS")
+))) {
+set.seed(100)
+sce <- correctExperiments(sce,
+  batch = factor(sce$Chip),
+  subset.row = rowSubset(sce),
+  correct.all=TRUE,
+  PARAM = FastMnnParam(
+  merge.order = 
+    list( list(list("2","4"), "3"), "1"),
+  d = 25,
+  prop.k=0.05
+  )
+)
+} else {
+   sce <- readRDS(here("processed", project,  "sce_corrected.RDS"))
+}
+
+```
+
+Plot the corrected dimensions (to use instead of PCA)
+```{r pca}
+plotReducedDim(sce, colour_by= "Chip", point_size=0.1, dimred = "corrected") + 
+      ggtitle("After batch correction, small dots")
+```
+
+One useful diagnostic is the proportion of variance within each batch that is lost during MNN correction. Specifically, this refers to the within-batch variance that is removed during orthogonalization with respect to the average correction vector at each merge step. This is in the metadata, which contains a matrix of the variance lost in each batch (column) at each merge step (row).
+
+Large proportions of lost variance (>10%) suggest that correction is removing genuine biological heterogeneity. This would occur due to violations of the assumption of orthogonality between the batch effect and the biological subspace. In this case, the proportion of lost variance is small, indicating that non-orthogonality is not a major concern.
+
+```{r diagnostic}
+metadata(sce)$merge.info$lost.var
+```
+
+
+```{r umap}
+if (!(file.exists(
+  here("processed", project,  "sce_corrected.RDS")
+))) {
+  set.seed(100)
+  sce <- runUMAP(sce,  dimred="corrected", name="UMAP-mnn")
+  sce <- runTSNE(sce, dimred="corrected", name="TSNE-mnn")
+  # saveRDS(sce, here("processed", project,  "sce_corrected.RDS")) #save later
+}
+umap <- plotReducedDim(sce, colour_by = "Chip", dimred = "UMAP-mnn", point_size = 0.1, other_fields = "Chip" ) + ggtitle("UMAP after batch correction") 
+umap
+umap + facet_wrap(~Chip)
+
+tsne <- plotReducedDim(sce, colour_by = "Chip", dimred = "TSNE-mnn", point_size = 0.1, other_fields = "Chip" ) + ggtitle("TSNE after batch correction") 
+tsne
+tsne + facet_wrap(~Chip)
+
+```
+
+
+```{r umap-others, eval=FALSE}
+if (!(file.exists(
+  here("processed", project,  "sce_corrected.RDS")
+))) {
+# I test another seed, result is very similar
+set.seed(1000)
+sce <- runUMAP(sce,  dimred="corrected", name="UMAP-seed-mnn")
+# increasing nighbors so the global structure is better preserved,a costa of the local
+set.seed(100)
+sce <- runUMAP(sce,  dimred="corrected", name="UMAP-global-mnn", n_neighbors = 100)
+# decrease neighbors, where the local structure is better preserved.
+set.seed(100)
+sce <- runUMAP(sce,  dimred="corrected", name="UMAP-local-mnn", n_neighbors = 5)
+}
+#plots
+umap2 <- plotReducedDim(sce, colour_by = "Chip", dimred = "UMAP-seed-mnn", point_size = 0.1, other_fields = "Chip" ) + ggtitle("UMAP after batch correction - another seed") 
+umap2
+umap2 + facet_wrap(~Chip)
+
+
+umap3 <- plotReducedDim(sce, colour_by = "Chip", dimred = "UMAP-global-mnn", point_size = 0.1, other_fields = "Chip" ) + ggtitle("UMAP after batch correction - Global structure") 
+umap3
+umap3 + facet_wrap(~Chip)
+
+set.seed(100)
+sce <- runUMAP(sce,  dimred="corrected", name="UMAP-local-mnn", n_neighbors = 5)
+umap4 <- plotReducedDim(sce, colour_by = "Chip", dimred = "UMAP-local-mnn", point_size = 0.1, other_fields = "Chip" ) + ggtitle("UMAP after batch correction - Local structure") 
+umap4
+umap4 + facet_wrap(~Chip)
+```
+
+
+Now, default UMAP and TSNE will contain one of the MNN corrections
+```{r}
+if (!(file.exists(
+  here("processed", project,  "sce_corrected.RDS")
+))) {
+  reducedDim(sce, "UMAP") <- reducedDim(sce, "UMAP-mnn")
+  reducedDim(sce, "TSNE") <- reducedDim(sce, "TSNE-mnn")
+}
+```
+
+```{r}
+plotUMAP(sce, colour_by = "Day", other_fields= "Protocol")  + facet_wrap(~Protocol)
+plotUMAP(sce, colour_by = "Protocol", other_fields="Day")  + facet_wrap(~Day)
+```
+
+```{r save}
+if (!(file.exists(
+  here("processed", project,  "sce_corrected.RDS")
+))) {
+saveRDS(sce, here("processed", project,  "sce_corrected.RDS") )
+}
+```
+
+<details>
+  <summary>**Session Info**</summary>
+  
+```{r}
+sessionInfo()
+```
+
+</details>
