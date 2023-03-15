@@ -26,11 +26,13 @@ for(name in names(sce_list)){
   srt_res <- grep("res",names(colData(sce)), value = TRUE)
   
   
-  metadata_categorical <- c("lamanno", "Sample","ShortName", srt_res)
+  metadata_categorical <- c("lamanno", "Sample","ShortName", "batch", "Day", "CellLine", "Protocol", srt_res)
   
   for(metadata in metadata_categorical){
     # transform to factor
-    sce[[metadata]] <- droplevels(as.factor(sce[[metadata]]))
+  #  sce[[metadata]] <- droplevels(as.factor(sce[[metadata]]))
+    sce[[metadata]] <- (as.factor(sce[[metadata]]))
+    print(metadata)
     # replace colours ( need to specify the exact n of colours)
     length <- length(levels((sce[[metadata]])))
     scconf <- modColours(scconf, meta.to.mod = metadata,
