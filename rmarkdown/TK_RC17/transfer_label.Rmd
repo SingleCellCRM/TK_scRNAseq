@@ -31,7 +31,7 @@ source(here("src","R", "colours.R"))
 if (!(file.exists(
   here("processed", project,  "sce_labels.RDS")
 ))) {
-sce <- readRDS(here("processed", project,  "sce_corrected.RDS"))
+  sce <- readRDS(here("processed", project,  "sce_corrected.RDS"))
 } else{
   sce <- readRDS(here("processed", project,  "sce_labels.RDS"))
 }
@@ -145,10 +145,48 @@ rownames(sce) <- rowData(sce)$symb_uniq
 
 # Compare both annotations
 ```{r}
-pheatmap(table(sce$lamanno_es, sce$lamanno_es_ig), cluster_rows = F, cluster_cols = F, scale = "col")
+pheatmap(table(sce$lamanno_es, sce$lamanno_es_ig), cluster_rows = F, cluster_cols = F, scale = "row")
 pheatmap(table(sce$lamanno_es, sce$lamanno_es_ig), cluster_rows = F, cluster_cols = F, scale = "column")
 
 ```
+
+
+# A more global annotation
+
+Using isabella grabski's algorithm again, but this time I will merge the similar clusters
+in the training dataset.
+
+```{r}
+# group the cell types
+Nb<- grep("^eNb", unique(lamanno_es$Cell_type), value = TRUE )
+Rgl <- grep("^eRgl", unique(lamanno_es$Cell_type), value = TRUE )
+Prog <- grep("^eProg", unique(lamanno_es$Cell_type), value = TRUE )
+SC <- grep("^eSC", unique(lamanno_es$Cell_type), value = TRUE )
+
+lamanno_es$grouped_celltype <- dplyr::case_when(lamanno_es$Cell_type %in% Nb ~ "Nb",
+                                                lamanno_es$Cell_type %in% Rgl ~ "Rgl",
+                                                lamanno_es$Cell_type %in% Prog ~ "Prog",
+                                                lamanno_es$Cell_type %in% SC ~ "SC")
+
+# train data with new classification
+igrabski <- trainAllReference(counts(lamanno_es),lamanno_es$grouped_celltype)
+# switch to ENESMBLE notation in the query dataset
+rownames(sce) <- rowData(sce)$ID
+annotation_igrabski_grouped <- classifyTarget(as.matrix(counts(sce)), igrabski, other = TRUE )
+sce$celltype_es_ig <- annotation_igrabski_grouped
+# put back annotation
+rownames(sce) <- rowData(sce)$symb_uniq
+
+```
+
+### Compare with the other ig annotation
+```{r}
+pheatmap(table(sce$celltype_es_ig, sce$lamanno_es_ig), cluster_rows = F, cluster_cols = F, scale = "row")
+pheatmap(table(sce$celltype_es_ig, sce$lamanno_es_ig), cluster_rows = F, cluster_cols = F, scale = "column")
+
+```
+
+# Save
 
 ```{r save}
 if (!(file.exists(
