@@ -185,6 +185,17 @@ pheatmap(table(sce$celltype_es_ig, sce$lamanno_es_ig), cluster_rows = F, cluster
 pheatmap(table(sce$celltype_es_ig, sce$lamanno_es_ig), cluster_rows = F, cluster_cols = F, scale = "column")
 
 ```
+# Cell Cycle Annotation
+
+```{r}
+set.seed(10001)
+hs_pairs <- readRDS(system.file("exdata", "human_cycle_markers.rds", package="scran"))
+assigned <- cyclone(sce, pairs=hs_pairs, 
+    gene.names=rowData(sce)$ID)
+sce$phase <- assigned$phases
+saveRDS(assigned, here("processed",project,  "cyclone_asignments.RDS"))
+```
+
 
 # Save
 
