@@ -20,6 +20,7 @@ library(scuttle) # normalise reference
 library(here) # reproducible paths
 library(pheatmap) # diagnostic plots
 library(scater) # dimplots
+library(scran) # cycle annotation
 ```
 
 ```{r}
@@ -198,6 +199,22 @@ pheatmap(table(sce$celltype_es_ig, sce$lamanno_es_ig), cluster_rows = F, cluster
 pheatmap(table(sce$celltype_es_ig, sce$lamanno_es_ig), cluster_rows = F, cluster_cols = F, scale = "column")
 
 ```
+
+# Cell Cycle Annotation
+
+```{r}
+set.seed(10001)
+hs_pairs <- readRDS(system.file("exdata", "human_cycle_markers.rds", package="scran"))
+assigned <- cyclone(sce, pairs=hs_pairs, 
+    gene.names=rowData(sce)$ID)
+sce$phase <- assigned$phases
+sce$phase_score_G1 <- assigned$scores$G1
+sce$phase_score_G2M <- assigned$scores$G2M
+sce$phase_score_S <- assigned$scores$S
+saveRDS(assigned, here("processed",project,  "cyclone_asignments.RDS"))
+```
+
+# Save
 
 ```{r save}
 if (!(file.exists(
