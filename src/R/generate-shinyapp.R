@@ -2,22 +2,15 @@ library(ShinyCell)
 library(here)
 library(SingleCellExperiment) # access the coldata
 
-# import datasets
-# TODO add this into the loop
-project <- "TK_all"
-sce_all <- readRDS(here("processed", project,  "sce_labels.RDS"))
-
-project <- "TK_RC17"
-sce_RC17 <- readRDS(here("processed", project,  "sce_clusters_01.RDS"))
-
-# combine them
-sce_list <- list(TK_all = sce_all, TK_RC17 = sce_RC17)
-
+# list of datasets
+projects <- c("TK_RC17", "TK_Mshef7", "TK_404C2", "TK_1231A3")
 #import colours
 source(here("src","R", "colours.R"))
 
-for(name in names(sce_list)){
-  sce <- sce_list[[name]]
+for(project in projects){
+  
+  sce <- readRDS(here("processed", project,  "sce_clusters_01.RDS"))
+  
   # configruation
   scconf <- createConfig(sce)
   
@@ -26,7 +19,7 @@ for(name in names(sce_list)){
   srt_res <- grep("res",names(colData(sce)), value = TRUE)
   
   
-  metadata_categorical <- c("lamanno", "Sample","ShortName", "batch", "Day", "CellLine", "Protocol", srt_res)
+  metadata_categorical <- c( "lamanno", "Sample","ShortName", "batch", "Day", "CellLine", "Protocol", srt_res)
   
   for(metadata in metadata_categorical){
     # transform to factor
@@ -49,18 +42,21 @@ for(name in names(sce_list)){
   
   # make the shiny app files
   makeShinyFiles(sce, scconf, 
-                 shiny.prefix = name,
+                 shiny.prefix = project,
                  gene.mapping = TRUE, 
   )
   
 }
 
+
+########
 # build shiny app
+# this is too big, I will need to split in two
 makeShinyCodesMulti(shiny.title = "scRNAseq - Tilo Kunath", 
-                    shiny.prefix = names(sce_list),
+                    shiny.prefix = projects,
                     shiny.dir = "shinyApp/",
                     shiny.footnotes = NA,
-                    shiny.headers = c("Whole DataSet", "RC17")
+                    shiny.headers = stringr::str_remove_all(projects, "TK_")
 )
 
 
