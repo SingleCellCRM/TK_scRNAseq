@@ -59,4 +59,10 @@ makeShinyCodesMulti(shiny.title = "scRNAseq - Tilo Kunath",
                     shiny.headers = stringr::str_remove_all(projects, "TK_")
 )
 
+# and then the other one just for the cells together
+makeShinyCodes(shiny.title = "scRNAseq - Tilo Kunath", 
+                    shiny.prefix = "TK_all",
+                    shiny.dir = "shinyAll/",
+                    shiny.footnotes = NA
+)
 
