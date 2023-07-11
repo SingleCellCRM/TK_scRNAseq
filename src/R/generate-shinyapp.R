@@ -19,7 +19,7 @@ for(project in projects){
   srt_res <- grep("res",names(colData(sce)), value = TRUE)
   
   
-  metadata_categorical <- c( "lamanno", "Sample","ShortName", "batch", "Day", "CellLine", "Protocol", srt_res)
+  metadata_categorical <- c( "lamanno", "lamanno_in_vivo", "Sample","ShortName", "batch", "Day", "CellLine", "Protocol", srt_res)
   
   for(metadata in metadata_categorical){
     # transform to factor
