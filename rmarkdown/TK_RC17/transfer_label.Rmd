@@ -127,6 +127,24 @@ sce$lamanno_es[(is.na(sce$lamanno_es))] <- "NA"
 }
 ```
 
+# Add annotation using igrabski algorithm
+
+```{r}
+if (!(file.exists(
+  here("processed", project,  "sce_labels.RDS")
+))) {
+  source(here("src/R/scRNAseq-cell-type/cell_type_identification4_clean.R"))
+  
+  # train data
+  igrabski <- trainAllReference(counts(lamanno_es),lamanno_es$Cell_type)
+  # switch to ENESMBLE notation in the query dataset
+  rownames(sce) <- rowData(sce)$ID
+  annotation_igrabski <- classifyTarget(as.matrix(counts(sce)), igrabski, other = TRUE )
+  sce$lamanno_es_ig <- annotation_igrabski
+  # put back annotation
+  rownames(sce) <- rowData(sce)$symb_uniq
+}
+```
 
 # Add annotation using igrabski algorithm
 
