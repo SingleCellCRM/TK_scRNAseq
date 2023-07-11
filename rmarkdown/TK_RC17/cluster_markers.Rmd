@@ -1,0 +1,159 @@
+---
+title: "Cluster Markers"
+author: "Nadine Bestard"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    code_folding: hide
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r library}
+library(here)
+library(scran)
+library(Seurat)
+library(here)
+```
+
+```{r}
+project <- "TK_RC17"
+```
+
+# Functions
+
+```{r}
+# This function performs differential gene expression analysis based on all 
+# specified column names and saves the output as .csv
+
+int_res_all_mark <- function(seur_obj, 
+                             int_cols,
+                             only_pos = TRUE,
+                             min_pct = 0.25,
+                             logfc_threshold = 0.25,
+                             filter=c("TRUE", "FALSE", "both"),
+                             fil_pct_1 = 0.25,
+                             fil_pct_2 = 0.6,
+                             avg_log = 1.2,
+                             save_dir = getwd(),
+                             test_use = "MAST"
+){
+  for(i in 1:length(int_cols)){
+    Idents(seur_obj) <- int_cols[i]
+    all_mark <- FindAllMarkers(seur_obj, 
+                               only.pos = only_pos, 
+                               min.pct = min_pct, 
+                               logfc.threshold = logfc_threshold,
+                               test.use = test_use)
+    
+    if(filter %in% c("TRUE", "both")){
+    fil_mark<- subset(all_mark, 
+                      all_mark$pct.1 > fil_pct_1 & 
+                        all_mark$pct.2 < fil_pct_2 )
+        write.csv(fil_mark, paste(save_dir, "/fil_mark", int_cols[i], ".csv", sep = "" ))
+    } else if (filter %in% c("FALSE", "both")){
+      write.csv(all_mark, paste(save_dir, "/all_mark", int_cols[i], ".csv", sep = "" ))
+    } else {
+      write.csv(all_mark, paste(save_dir, "/all_mark", int_cols[i], ".csv", sep = "" ))
+    }
+
+    
+  }
+}
+
+### The following function 
+
+pairwise_mark <- function(seur_obj, 
+                          int_cols,
+                          only_pos = TRUE,
+                          min_pct = 0.25,
+                          logfc_threshold = 0.25,
+                          fil_pct_1 = 0.25,
+                          fil_pct_2 = 0.1,
+                          save_dir = getwd(),
+                          test_use = "MAST",
+                          assay_use = "RNA"){
+  for(k in 1:length(int_cols)){
+    Idents(seur_obj) <- int_cols[k]
+    # create all pairwise combinations at the picked resolution
+    clust_id_list <- combn(levels(as.factor(seur_obj@meta.data[[int_cols]])),2)
+    for(i in 1:ncol(clust_id_list)){
+      clust_mark <- FindMarkers(seur_obj, 
+                                ident.1 = clust_id_list[,i][[1]], 
+                                ident.2 = clust_id_list[,i][[2]],
+                                min.pct = min_pct, 
+                                test.use = test_use,
+                                assay = assay_use )
+      clust_mark$cluster <- clust_id_list[,i][[1]]
+      clust_mark$comp_to_clust <- clust_id_list[,i][[2]]
+      dir.create(paste0(save_dir, 
+                      "/", 
+                      paste0("res_", int_cols[k])
+                      ))
+      write.csv(clust_mark, 
+                paste0(save_dir, 
+                      "/", 
+                      paste0("res_", int_cols[k]),
+                      "/",
+                      clust_id_list[,i][[1]],
+                      "_",
+                      clust_id_list[,i][[2]],
+                      ".csv"))
+    }
+  }
+}
+
+
+```
+
+```{r}
+sce <- readRDS(here("processed", project, "sce_clusters_01.RDS"))
+srt <- as.Seurat(sce, counts = "counts", data="logcounts")
+```
+
+```{r}
+int_res_all_mark(srt, int_cols = paste0("originalexp_snn_res.", seq(0.2, 1, 0.1)), save_dir = here("outs", project, "cluster_markers"), filter = "both")
+
+#pairwise_mark(srt, int_cols = paste0("originalexp_snn_res.", seq(0.2, 1, 0.1)), save_dir = here("outs", project, "cluster_markers", "pairwise"))
+pairwise_mark(srt, int_cols = paste0("originalexp_snn_res.1"), save_dir = here("outs", project, "cluster_markers", "pairwise"), assay_use = "originalexp")
+```
+
+
+```{r}
+# compute markers
+
+  dir.create( here("outs", project, "cluster_markers", "ranked"))
+  markers <- findMarkers(sce, groups = sce$originalexp_snn_res.1, direction="up", lfc=1)
+  #saveRDS(markers, here("outs", project, "cluster_markers", "ranked.rds"))
+  # save the top 100 genes for each one of the df
+  lapply(names(markers), function(x){
+    top_markers <- head(markers[[x]], 100)
+    write.csv(top_markers, here("outs", project, "cluster_markers", "ranked", paste0("top_markers_", x, "_res.1.csv")), quote = FALSE)
+    }
+  )
+
+```
+```{r}
+# Create object where instead of cells in cols we have the clusters with counts aggregated
+summed<- aggregateAcrossCells(sce, id=colData(sce)[,c("originalexp_snn_res.1")])
+
+# Delete ribosomal and mitochondrial genes
+is_ribo <- grepl("^RP[SL]", rownames(summed))
+is_mito <- grepl("^MT-", rownames(summed))
+keep <- !(is_ribo | is_mito)
+ summed <- summed[keep,]
+ 
+# for each column (aggregated counts) of the object extract the top genes
+top_genes <- apply(counts(summed), 
+      MARGIN = 2,
+      function(x){
+        # get the gene names from the top expressed genes
+        names(sort(x, decreasing = T)[1:100])
+        }
+      )
+# save result
+write.table(top_genes, file = here("outs", project, "cluster_markers", "top_genes_nomt_res1.tsv"), sep = "\t", quote = FALSE, col.names = TRUE, row.names = FALSE)
+```
+
