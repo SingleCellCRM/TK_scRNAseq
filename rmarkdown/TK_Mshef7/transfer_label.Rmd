@@ -39,17 +39,16 @@ sce <- readRDS(here("processed", project,  "sce_corrected.RDS"))
 ```
 
 # Import reference 
-
 ```{r load-refs}
 if (!(file.exists(
   here("processed", project,  "sce_labels.RDS")
 ))) {
 lamanno_ips <- LaMannoBrainData("human-ips", ensembl=TRUE)
 lamanno_es <- LaMannoBrainData("human-es", ensembl=TRUE)
-# TODO: LaMannoBrainData('human-embryo')
+lamanno_in_vivo <-  LaMannoBrainData('human-embryo', ensembl=TRUE)
 
-genes <- intersect(rownames(lamanno_ips), rownames(lamanno_es))
-lamanno <- cbind(lamanno_ips[genes,],lamanno_es[genes,])
+genes <- intersect(intersect(rownames(lamanno_ips), rownames(lamanno_es)), rownames(lamanno_in_vivo))
+lamanno <- cbind(lamanno_ips[genes,],lamanno_es[genes,], lamanno_in_vivo[genes,])
 }
 ```
 
@@ -80,8 +79,6 @@ saveRDS(annotation, here("processed", project, "annotation.RDS"))
 ```
 
 # Diagnostics
-
-
 ```{r}
 plotScoreHeatmap(annotation)
 # only ips
@@ -92,7 +89,13 @@ plotScoreHeatmap(annotation, labels.use = ips_labs, cells.use = ips_cells)
 es_labs <-grep("^e", unique(annotation$labels), value = TRUE )
 es_cells <- rownames(annotation)[annotation$labels %in% es_labs]
 plotScoreHeatmap(annotation, labels.use = es_labs, cells.use = es_cells)
+
+#only in_vivo
+in_vivo_labs <-grep("^h", unique(annotation$labels), value = TRUE )
+in_vivo_cells <- rownames(annotation)[annotation$labels %in% in_vivo_labs]
+plotScoreHeatmap(annotation, labels.use = in_vivo_labs, cells.use = in_vivo_cells)
 ```
+
 # Transfer back to query dataset. 
 ```{r}
 sce$lamanno <- as.factor(annotation$pruned.labels)
@@ -157,7 +160,7 @@ if (!(file.exists(
 
 # Compare both annotations
 ```{r}
-pheatmap(table(sce$lamanno_es, sce$lamanno_es_ig), cluster_rows = F, cluster_cols = F, scale = "column")
+pheatmap(table(sce$lamanno_es, sce$lamanno_es_ig), cluster_rows = F, cluster_cols = F, scale = "row")
 pheatmap(table(sce$lamanno_es, sce$lamanno_es_ig), cluster_rows = F, cluster_cols = F, scale = "column")
 
 ```
@@ -198,6 +201,37 @@ if (!(file.exists(
 pheatmap(table(sce$celltype_es_ig, sce$lamanno_es_ig), cluster_rows = F, cluster_cols = F, scale = "row")
 pheatmap(table(sce$celltype_es_ig, sce$lamanno_es_ig), cluster_rows = F, cluster_cols = F, scale = "column")
 
+```
+
+# Add annotation from lammano in_vivo only
+```{r}
+
+if(!file.exists(here("processed", project, "annotation_in_vivo.RDS"))){
+  
+  lamanno_in_vivo <- logNormCounts(lamanno_in_vivo)
+  # switch to ENESMBLE notation in the query dataset
+  rownames(sce) <- rowData(sce)$ID
+  # We choose wilcox as "This is slower but more appropriate for single-cell data compared to the default marker detection algorithm"
+  # from singleR vignette
+  annotation_in_vivo <- SingleR(sce, ref=lamanno_in_vivo, labels= lamanno_in_vivo$Cell_type, de.method = "wilcox")
+  # come back to gene row names
+  rownames(sce) <- rowData(sce)$symb_uniq
+  saveRDS(annotation_in_vivo, here("processed", project, "annotation_in_vivo.RDS"))
+  
+  # transfer back
+  sce$lamanno_in_vivo <- as.factor(annotation_in_vivo$pruned.labels)
+  # I want the NA as a level, for later representation. 
+  levels(sce$lamanno_in_vivo) <-c(levels(sce$lamanno_in_vivo), "NA")
+  sce$lamanno_in_vivo[(is.na(sce$lamanno_in_vivo))] <- "NA"
+  
+}else{
+  annotation_in_vivo <- readRDS(here("processed", project, "annotation_in_vivo.RDS"))
+  # transfer back
+  sce$lamanno_in_vivo <- as.factor(annotation_in_vivo$pruned.labels)
+  # I want the NA as a level, for later representation. 
+  levels(sce$lamanno_in_vivo) <-c(levels(sce$lamanno_in_vivo), "NA")
+  sce$lamanno_in_vivo[(is.na(sce$lamanno_in_vivo))] <- "NA"
+}
 ```
 
 # Cell Cycle Annotation
