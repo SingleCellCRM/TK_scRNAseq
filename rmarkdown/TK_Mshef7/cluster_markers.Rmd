@@ -19,7 +19,7 @@ library(here)
 ```
 
 ```{r}
-project <- "TK_RC17"
+project <- "TK_Mshef7"
 ```
 
 # Functions
@@ -116,6 +116,10 @@ srt <- as.Seurat(sce, counts = "counts", data="logcounts")
 ```{r}
 out_against_all <- here("outs", project, "cluster_markers", "against_all")
 dir.create(out_against_all)
+
+#test quick (only 3 clusters)
+#int_res_all_mark(srt, int_cols = paste0("originalexp_snn_res.0.04"), save_dir = out_against_all, filter = "both")
+
 int_res_all_mark(srt, int_cols = paste0("originalexp_snn_res.", seq(0.2, 1, 0.1)), save_dir = out_against_all, filter = "both")
 
 # not pairwise, it is too long.
