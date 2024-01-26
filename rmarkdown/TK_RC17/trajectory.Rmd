@@ -1,0 +1,83 @@
+---
+title: "Trajectory"
+author: "Nadine Bestard"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    code_folding: hide
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r set-up, message=FALSE, warning=FALSE}
+library(phateR)
+library(here)
+library(scater)
+```
+
+```{r}
+project <- "TK_RC17"
+source(here("src","R", "colours.R"))
+
+```
+# Run PHATE as dimensional reduction
+```{r}
+if(!file.exists(saveRDS(sce, here("processed", project,  "sce_phate.RDS")) )){
+  sce <- readRDS(here("processed", project,  "sce_anno_01.RDS"))  # update with annotated
+  phate <- phate(reducedDim(sce, "corrected")) # to preserve batch correction: https://github.com/KrishnaswamyLab/PHATE/issues/82
+  reducedDim(sce, "PHATE") <- phate$embedding
+  saveRDS(sce, here("processed", project,  "sce_phate.RDS")) 
+}else{
+  sce <- readRDS(sce, here("processed", project,  "sce_phate.RDS")) 
+}
+```
+```{r}
+
+plotReducedDim(sce, "PHATE", colour_by = "Sample")
+plotReducedDim(sce, "UMAP", colour_by = "Sample")
+plotReducedDim(sce, "UMAP", colour_by = "cluster_shortname")
+#plotReducedDim(sce, "PHATE_nobatch", colour_by = "Sample")
+
+
+```
+
+# Compute trajectory
+
+```{r}
+library(slingshot)
+sce <- readRDS(here("processed", project,  "sce_phate.RDS"))
+
+sce <- slingshot(sce, clusterLabels = sce$cluster_shortname, reducedDim = "PHATE", start.clus= "PSC")
+
+plotReducedDim(sce, "PHATE", colour_by = "slingPseudotime_1")
+plotReducedDim(sce, "PHATE", colour_by = "slingPseudotime_2")
+plotReducedDim(sce, "PHATE", colour_by = "slingPseudotime_3")
+plotReducedDim(sce, "PHATE", colour_by = "slingPseudotime_4")
+
+slingLineages(SlingshotDataSet(sce))
+
+```
+```{r}
+plot(reducedDims(sce)$PHATE, col = cols[sce$cluster_name], pch=16, asp = 1)
+lines(SlingshotDataSet(sce), lwd=2, type = 'lineages', col = 'black')
+saveRDS(sce, here("processed", project,  "sce_trajectory.RDS")) 
+```
+
+# Moconcle
+
+
+
+<details>
+    <summary>Click to expand</summary>
+
+    <p>
+
+```{r}
+sessionInfo()
+```
+
+   </p>
+</details>
