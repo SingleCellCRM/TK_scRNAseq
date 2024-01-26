@@ -1043,6 +1043,21 @@
       ],
       "Hash": "7cbcf1fe7236f18f1a961877fbf2d78c"
     },
+    "TrajectoryUtils": {
+      "Package": "TrajectoryUtils",
+      "Version": "1.4.0",
+      "Source": "Bioconductor",
+      "Requirements": [
+        "Matrix",
+        "S4Vectors",
+        "SingleCellExperiment",
+        "SummarizedExperiment",
+        "igraph",
+        "methods",
+        "stats"
+      ],
+      "Hash": "05aa43ff1d592ace96c931ee63ab2ba8"
+    },
     "VGAM": {
       "Package": "VGAM",
       "Version": "1.1-8",
@@ -2896,6 +2911,20 @@
       "Repository": "CRAN",
       "Hash": "95ef9167b75dde9d2ccc3c7528393e7e"
     },
+    "princurve": {
+      "Package": "princurve",
+      "Version": "2.1.6",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "Rcpp",
+        "grDevices",
+        "graphics",
+        "stats"
+      ],
+      "Hash": "1e3d2690c203c82497e5520ba152d094"
+    },
     "processx": {
       "Package": "processx",
       "Version": "3.8.0",
@@ -3518,6 +3547,26 @@
         "stats"
       ],
       "Hash": "e25793551cbdb843154152e5ee88cbd6"
+    },
+    "slingshot": {
+      "Package": "slingshot",
+      "Version": "2.4.0",
+      "Source": "Bioconductor",
+      "Requirements": [
+        "R",
+        "S4Vectors",
+        "SingleCellExperiment",
+        "SummarizedExperiment",
+        "TrajectoryUtils",
+        "grDevices",
+        "graphics",
+        "igraph",
+        "matrixStats",
+        "methods",
+        "princurve",
+        "stats"
+      ],
+      "Hash": "367a76d8e04cd7044be1d6e958506872"
     },
     "snow": {
       "Package": "snow",
