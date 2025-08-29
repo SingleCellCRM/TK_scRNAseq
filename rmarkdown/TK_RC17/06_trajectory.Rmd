@@ -25,13 +25,13 @@ source(here("src","R", "colours.R"))
 ```
 # Run PHATE as dimensional reduction
 ```{r}
-if(!file.exists(saveRDS(sce, here("processed", project,  "sce_phate.RDS")) )){
+if(!file.exists(here("processed", project,  "sce_phate.RDS")) ){
   sce <- readRDS(here("processed", project,  "sce_anno_01.RDS"))  # update with annotated
   phate <- phate(reducedDim(sce, "corrected")) # to preserve batch correction: https://github.com/KrishnaswamyLab/PHATE/issues/82
   reducedDim(sce, "PHATE") <- phate$embedding
   saveRDS(sce, here("processed", project,  "sce_phate.RDS")) 
 }else{
-  sce <- readRDS(sce, here("processed", project,  "sce_phate.RDS")) 
+  sce <- readRDS(here("processed", project,  "sce_phate.RDS")) 
 }
 ```
 ```{r}
@@ -56,7 +56,11 @@ plotReducedDim(sce, "PHATE", colour_by = "slingPseudotime_1")
 plotReducedDim(sce, "PHATE", colour_by = "slingPseudotime_2")
 plotReducedDim(sce, "PHATE", colour_by = "slingPseudotime_3")
 plotReducedDim(sce, "PHATE", colour_by = "slingPseudotime_4")
+```
 
+The 4 lineages are as follows: 
+
+```{r}
 slingLineages(SlingshotDataSet(sce))
 
 ```
@@ -66,7 +70,6 @@ lines(SlingshotDataSet(sce), lwd=2, type = 'lineages', col = 'black')
 saveRDS(sce, here("processed", project,  "sce_trajectory.RDS")) 
 ```
 
-# Moconcle
 
 
 
@@ -74,6 +77,8 @@ saveRDS(sce, here("processed", project,  "sce_trajectory.RDS"))
     <summary>Click to expand</summary>
 
     <p>
+
+
 
 ```{r}
 sessionInfo()

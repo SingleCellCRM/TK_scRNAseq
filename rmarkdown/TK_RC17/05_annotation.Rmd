@@ -1,0 +1,51 @@
+---
+title: "annotation"
+author: "Nadine Bestard"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+output: 
+  html_document:
+    code_folding: hide
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r set-up, message=FALSE, warning=FALSE}
+library(here)
+library(scater)
+```
+
+```{r}
+project <- "TK_RC17"
+source(here("src","R", "colours.R"))
+sce <- readRDS(here("processed", project,  "sce_clusters_01.RDS")) 
+```
+
+```{r}
+annotation <- read.csv(here("data/RC17_annotation.csv"))
+sce$cluster_name <- sce$originalexp_snn_res.1
+sce$cluster_shortname <- sce$originalexp_snn_res.1
+
+levels(sce$cluster_shortname) <- annotation$Short.Name
+levels(sce$cluster_name) <- annotation$Name
+
+# relevel # order taken from excel sheet Nov 2023
+sce$cluster_shortname <- factor(sce$cluster_shortname, levels = c("PSC","mFP-NP","mFP-RG","E-mDA-NP","M-mDA-NP","L-mDA-NP","mDA-I","mDA-II","RN","GABA","uNP"))
+
+sce$cluster_name <- factor(sce$cluster_name, levels =
+c("Pluripotent stem cells","Midbrain floor plate neural progenitor","Midbrain floor plate radial glia","Early mDA neuronal progenitors","Mid mDA neuronal progenitors","Late mDA neuronal progenitors","Immature mDA neurons (Type I)","Immature mDA neurons (Type II)","Immature red nucleus neurons","Immature GABAergic neurons","Unspecified neuronal progenitors"))
+
+plotReducedDim(sce, dimred = "UMAP", colour_by = "cluster_name")
+plotReducedDim(sce, dimred = "UMAP", colour_by = "cluster_shortname")
+
+saveRDS(sce, here("processed", project,  "sce_anno_01.RDS")) 
+```
+

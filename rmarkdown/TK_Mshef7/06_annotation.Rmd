@@ -1,0 +1,22 @@
+---
+title: "06_annotation"
+author: "Nadine Bestard"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+
+
+```{r set-up, message=FALSE, warning=FALSE}
+library(here) # reproducible paths
+library(scater) # dimplots
+```
+
+```{r}
+project <- "TK_Mshef7"
+source(here("src","R", "colours.R"))
+```
+
+```{r load-sce}
+sce <- readRDS(here("processed", project,  "sce_clusters_01.RDS"))
+```

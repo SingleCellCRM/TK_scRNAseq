@@ -1,0 +1,37 @@
+---
+title: "Trajectory 2 - DE genes"
+author: "Nadine Bestard"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r}
+library(tradeSeq) # to compute DE
+library(here)
+library(slingshot) # to get treajectories info
+library(SingleCellExperiment) # extract counts
+```
+```{r}
+
+project <- "TK_RC17"
+source(here("src","R", "colours.R"))
+
+sce <- readRDS(here("processed", project,  "sce_trajectory.RDS"))
+```
+
+# Trade-Seq workflow
+https://bioconductor.org/packages/release/bioc/vignettes/tradeSeq/inst/doc/tradeSeq.html
+```{r}
+set.seed(3)
+BPPARAM <- BiocParallel::bpparam()
+BPPARAM$workers <- 3
+knots <- evaluateK(counts = counts(sce), 
+                   pseudotime = slingPseudotime(sce, na=FALSE),
+                   cellWeights = slingCurveWeights(sce),
+                   k = 3:20, genes = 100, verbose = TRUE,
+                   BPPARAM = BPPARAM)
+```
+
