@@ -12,6 +12,8 @@ In *src* are saved the scripts to run Cellranger and generate summary reports.
 
 In *rmarkdown* we have: 
 
+Global analysis:
+
 - import.R : to import the libraries, all batches together
 
 - QC: using isOutlier threshold separate by chip. 
@@ -20,9 +22,16 @@ In *rmarkdown* we have:
 
 - Feature selection and batch correction
 
-- Label transfer (from Gioele LaManno's)
+- Label transfer (from Gioele LaManno's) - we tested with linnarson too but wasn't informative.
 
+- Clustering at different resolutions
 
+- Analise with alternative workflows (Seurat, Liger)
+
+Analysis separated by cell lines:
+ 
+ - Same than for Global
+ - RC17: further annotations and trajectory analysis
 
 *processed* contains intermediate R objects
 
@@ -33,8 +42,8 @@ The R analysis project uses *renv*, ensuring we can use the same set of librarie
 
 **TODO:**
 
-Clustering at different resolutions
+- Annotate the Mshef7 (label transfer form RC17 done, Tilo is working on annotation)
+- Annotate the other cell lines
 
-(...)
 
 
